@@ -1,0 +1,72 @@
+#ZVView-data-copy:  12-Mar-2018 21:45:50
+#=======================================
+#
+#name:   49-IN-115(N,G)49-IN-116-M,,SIG,,FIS
+#X.axis: Incident Energy
+#Y.axis: Cross Section
+#wdata:  3
+#ldata:  3
+#data...
+#            X            Y         +-dY  # Comments...
+#          MeV        barns        barns  # Year,Author(s)           ## EXFOR-ID
+             1            0         0.18            0  # 1949,D.J.Hughes+         ## 11450031
+             1            0        0.166            0  # 1953,D.J.Hughes+         ## 13860045
+             1            0        0.122        0.006  # 1967,A.Fabry             ## 20229004
+//
+#-------------------------------------------------------------------------------
+#
+#name:   49-IN-115(N,G)49-IN-116-M,,SIG
+#X.axis: Incident Energy
+#Y.axis: Cross Section
+#wdata:  4
+#ldata:  19
+#data...
+#            X         +-dX            Y         +-dY  # Comments...
+#          MeV          MeV        barns        barns  # Year,Author(s)           ## EXFOR-ID
+         0.024       0.0025        0.903        0.108  # 1973,M.Sriramachandra    ## 31712012
+         0.024            0        0.618        0.041  # 1958,V.N.Kononov+        ## 40421019
+         0.144        0.005       0.2375       0.0086  # 1986,Ma Hongchang+       ## 30759002
+           0.2        0.015        0.234       0.0156  # 1958,A.I.Leipunskiy+     ## 40244078
+         0.565        0.005       0.1675       0.0058  # 1986,Ma Hongchang+       ## 30759002
+          1.12         0.06      0.27133     0.003374  # 2015,B.M.Lawriniang+     ## 33092002
+          1.12         0.06      0.23129     0.002876  # 2015,B.M.Lawriniang+     ## 33092002
+          1.12         0.06      0.23332     0.002901  # 2015,B.M.Lawriniang+     ## 33092002
+          2.12        0.075      0.12041     0.001631  # 2015,B.M.Lawriniang+     ## 33092002
+          2.12        0.075      0.11471     0.001554  # 2015,B.M.Lawriniang+     ## 33092002
+          2.12        0.075      0.12286     0.001664  # 2015,B.M.Lawriniang+     ## 33092002
+           2.7            0        0.074        0.003  # 1958,A.I.Leipunskiy+     ## 40244099
+           2.7            0        0.061        0.006  # 1986,V.L.Demekhin+       ## 40944002
+          3.12        0.105     0.041348     0.000538  # 2015,B.M.Lawriniang+     ## 33092002
+          3.12        0.105     0.049247     0.000641  # 2015,B.M.Lawriniang+     ## 33092002
+             4            0       0.0392       0.0016  # 1958,A.I.Leipunskiy+     ## 40244099
+          4.12         0.11     0.017839     0.002469  # 2015,B.M.Lawriniang+     ## 33092002
+          4.12         0.11      0.01828     0.002511  # 2015,B.M.Lawriniang+     ## 33092002
+//
+#-------------------------------------------------------------------------------
+#
+#name:   49-IN-115(N,G)49-IN-116-M,,SIG,,SPA
+#X.axis: Incident Energy
+#Y.axis: Cross Section
+#wdata:  3
+#ldata:  4
+#data...
+#            X            Y         +-dY  # Comments...
+#          MeV        barns        barns  # Year,Author(s)           ## EXFOR-ID
+          0.45            0       0.2602        0.009  # 1978,I.Garlea+           ## 30452003
+          0.45            0       0.2602        0.009  # 1981,I.Garlea+           ## 30568023
+          0.83            0        0.109        0.015  # 1973,L.Lakosi+           ## 30268008
+           4.5            0        0.136        0.027  # 1973,G.Peto+             ## 30265013
+//
+#-------------------------------------------------------------------------------
+#
+#name:   49-IN-115(N,G)49-IN-116-M,,SIG,,MXW,REC
+#X.axis: Incident Energy
+#Y.axis: Cross Section
+#wdata:  3
+#ldata:  1
+#data...
+#            X            Y         +-dY  # Comments...
+#          MeV        barns        barns  # Year,Author(s)           ## EXFOR-ID
+         0.045            0        0.689         0.17  # 2000,Z.Y.Bao+            ## V0102230
+//
+#-------------------------------------------------------------------------------
