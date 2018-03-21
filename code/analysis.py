@@ -123,6 +123,7 @@ class flux_calc(object):
 		mu_E = (1.0/sum(hist))*sum([0.5*(edges[n+1]+edges[n])*h for n,h in enumerate(hist)])
 		sig_E = np.sqrt((1.0/sum(hist))*sum([h*(0.5*(edges[n]+edges[n+1])-mu_E)**2 for n,h in enumerate(hist)]))
 		# print 'E =',round(mu_E,2),'+/-',round(sig_E,3),'[MeV]'
+		self.EdE = [mu_E,sig_E]
 		f,ax = plt.subplots()
 		ax.plot(x,y,color=self.pallate['k'],lw=2.0)
 		ax.errorbar([0.5*(e+edges[n+1]) for n,e in enumerate(edges[:-1])],hist,yerr=2.0*unc,color=self.pallate['k'],ls='None',label='95% Confidence Bands')
@@ -146,7 +147,7 @@ class flux_calc(object):
 		coeff = [A100[n]+(self.sp['E0_D2']-100.0)*(A200[n]-A100[n])/100.0 for n in range(4)]
 		f,ax = plt.subplots()
 		eng_func = lambda theta_deg: coeff[0]+sum([coeff[n]*np.cos(theta_deg*np.pi/180.0)**n for n in range(1,4)])
-		ax.plot(np.arange(0,180,0.1),[eng_func(t) for t in np.arange(0,180,0.1)],color=self.pallate['k'],lw=2.0,label=str(round(self.sp['E0_D2'],1))+' keV')
+		ax.plot(np.arange(0,180,0.1),[eng_func(t) for t in np.arange(0,180,0.1)],color=self.pallate['k'],lw=2.0,label=r'$E_0=$'+str(round(self.sp['E0_D2'],1))+' keV')
 		ax.set_xlabel(r'$\theta$ [degrees]')
 		ax.set_ylabel('Neutron Energy [MeV]')
 		ax.legend(loc=0)
@@ -163,7 +164,7 @@ class flux_calc(object):
 		coeffB = [B100[n]+(self.sp['E0_D2']-100.0)*(B200[n]-B100[n])/100.0 for n in range(5)]
 		yield_func = lambda theta_deg: 1.0+sum([coeffB[n]*np.cos(theta_deg*np.pi/180.0)**n for n in range(5)])
 		f,ax = plt.subplots()
-		ax.plot(np.arange(0,180,0.1),[yield_func(t) for t in np.arange(0,180,0.1)],color=self.pallate['k'],lw=2.0,label=str(round(self.sp['E0_D2'],1))+' keV')
+		ax.plot(np.arange(0,180,0.1),[yield_func(t) for t in np.arange(0,180,0.1)],color=self.pallate['k'],lw=2.0,label=r'$E_0=$'+str(round(self.sp['E0_D2'],1))+' keV')
 		ax.set_xlabel(r'$\theta$ [degrees]')
 		ax.set_ylabel(r'R($\theta$)/R(90$^{\circ}$)')
 		ax.legend(loc=0)
@@ -451,8 +452,7 @@ class calibration(object):
 		return best_guess[1]
 	def fits(self,usecal=True):
 		guess = self.spectra[0].calibration if usecal else self.guess_energy_cal()
-		for s in self.spectra:
-			self.db.execute('DELETE FROM calibration_peaks WHERE filename=?',(s.filename+'.Spe',))
+		self.db.execute('DELETE FROM calibration_peaks WHERE directory=?',(self.directory,))
 		for s in self.spectra:
 			s.set_calibration([guess[0],guess[1]])
 			for pk in s.fit_peaks():
@@ -510,8 +510,10 @@ class calibration(object):
 				N_eff.append(pk['N']*conv/(0.01*pk['I']))
 				sig_N_eff.append(pk['unc_N']*conv/(0.01*pk['I']))
 		efit,unc = curve_fit(lambda x,a,b,c:[np.exp(a*np.log(i)**2+b*np.log(i)+c) for i in x],E_exp,N_eff,p0=guess,sigma=sig_N_eff)		
-		ax.errorbar(E_exp,N_eff,yerr=sig_N_eff,ls='None',marker='o',color=self.pallate['gy'],label='Peak Fits')
-		ax.plot(range(int(min(E_exp))-10,int(max(E_exp))+20),[np.exp(efit[0]*np.log(i)**2+efit[1]*np.log(i)+efit[2]) for i in range(int(min(E_exp))-10,int(max(E_exp))+20)],ls='-',lw=2.0,color=self.pallate['k'])
+		lbl = r'$\epsilon(E)=exp['+str(round(efit[0],3))+r'\cdot ln(E)^2'+('+' if efit[1]>0 else '')+str(round(efit[1],1))+r'\cdot ln(E)'+('+' if efit[2]>0 else '')+str(round(efit[2],1))+r']$'
+		lbl2 = r'Peak Fits, $\chi^2_{\nu}='+str(round(sum([(N_eff[n]-(np.exp(efit[0]*np.log(i)**2+efit[1]*np.log(i)+efit[2])))**2/sig_N_eff[n]**2 for n,i in enumerate(E_exp)])/float(len(E_exp)-4),3))+r'$'
+		ax.plot(range(int(min(E_exp))-10,int(max(E_exp))+20),[np.exp(efit[0]*np.log(i)**2+efit[1]*np.log(i)+efit[2]) for i in range(int(min(E_exp))-10,int(max(E_exp))+20)],ls='-',lw=2.0,color=self.pallate['k'],label=lbl)
+		ax.errorbar(E_exp,N_eff,yerr=sig_N_eff,ls='None',marker='o',color=self.pallate['gy'],label=lbl2)
 		self.db.execute('UPDATE calibration SET efficiency_calibration=? WHERE directory=?',(','.join([str(i) for i in efit]),self.directory))
 		self.db_connection.commit()
 		ax.set_yscale('log')
@@ -542,8 +544,8 @@ class calibration(object):
 		if show:
 			plt.show()
 		else:
-			f.savefig('../plots/'+self.directory+'/calibration/resolution.pdf')
-			f.savefig('../plots/'+self.directory+'/calibration/resolution.png')
+			f.savefig('../plots/'+self.directory+'/calibration/resolution_calibration.pdf')
+			f.savefig('../plots/'+self.directory+'/calibration/resolution_calibration.png')
 			plt.close()
 
 class experiment(object):
@@ -560,7 +562,7 @@ class experiment(object):
 		types = {'f':str,'m':float,'i':str,'E0_D2':float,'R_smpl':float,'R_src':float,'dx':float,'dy':float,'dz':float,'elbow':int,'c':str,'a0':float,'d':str,'start':str,'stop':str}
 		for ln in expt:
 			m = {i.split('=')[0]:types[i.split('=')[0]](i.split('=')[1]) for i in ln.split(',')}
-			self.db.execute('INSERT INTO experiment_files VALUES(?,?,?,?,?,?,?,?,?,?,?)',(m['f'],self.directory,m['m'],m['i'],m['E0_D2'],m['dx'],m['dy'],m['dz'],m['R_src'],m['R_smpl'],m['elbow']))
+			self.db.execute('INSERT INTO experiment_files VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',(m['f'],self.directory,m['m'],m['i'],m['E0_D2'],m['dx'],m['dy'],m['dz'],m['R_src'],m['R_smpl'],m['elbow'],0.0,0.0))
 		for ln in cal:
 			m = {i.split('=')[0]:types[i.split('=')[0]](i.split('=')[1]) for i in ln.split(',')}
 			self.db.execute('INSERT INTO calibration_files VALUES(?,?,?,?,?)',(m['c'],self.directory,m['i'],m['a0'],m['d']))
@@ -581,7 +583,10 @@ class experiment(object):
 		for dr in ['calibration','decay_curves','peak_fits','cross_sections','monitors']:
 			os.system('mkdir '+dr)
 		os.system('cp -a ../cross_sections/. cross_sections/')
-		os.chdir('../../code')
+		os.chdir('../../reports')
+		os.system('mkdir '+self.directory)
+		os.system('cp template/template.tex '+self.directory+'/'+self.directory+'_report.tex')
+		os.chdir('../code')
 	def fit_experiment_peaks(self):
 		eob = [[[int(t) for t in m.split(':')] for m in i[2].split('::')] for i in self.db.execute('SELECT * FROM irradiation_history WHERE directory=? ORDER BY stop_time DESC',(self.directory,))][0]
 		eob = dtm.datetime(eob[0][0],eob[0][1],eob[0][2],eob[1][0],eob[1][1],eob[1][2])
@@ -605,8 +610,10 @@ class experiment(object):
 			cb.energy_calibration()
 			cb.resolution_calibration()
 		cb.efficiency_calibration()
+	def parse_calibration_peaks(self,i):
+		return {'fnm':str(i[0]),'istp':str(i[2]),'N':int(i[3]),'unc_N':int(i[4]),'chi2':float(i[5]),'eng':float(i[6]),'I':float(i[7]),'unc_I':float(i[7])}
 	def parse_experiment_peaks(self,i):
-		return {'I':float(i[3]),'unc_I':float(i[4]),'N':float(i[5]),'unc_N':float(i[6]),'lm':float(i[8]),'eff':float(i[9]),'t_m':float(i[10]),'t_c':float(i[11])}
+		return {'fnm':str(i[0]),'istp':str(i[1]),'eng':float(i[2]),'I':float(i[3]),'unc_I':float(i[4]),'N':float(i[5]),'unc_N':float(i[6]),'chi2':float(i[7]),'lm':float(i[8]),'eff':float(i[9]),'t_m':float(i[10]),'t_c':float(i[11])}
 	def get_A0(self,fnm,istp,saveplot=True,show=False):
 		ip = isotope(istp)
 		lm = ip.decay_const()
@@ -618,7 +625,7 @@ class experiment(object):
 		unc[0][0] = np.average([sigA[n]*np.exp(lm*p['t_c']) for n,p in enumerate(pks)],weights=[1.0/(sigA[n]*np.exp(lm*p['t_c']))**2 for n,p in enumerate(pks)])**2
 		if saveplot or show:
 			f,ax = plt.subplots()
-			ax.errorbar([(1.0/60.0)*t for t in T_c],[a for a in A],yerr=[a for a in sigA],ls='None',marker='o',color=self.pallate['gy'],label='Photopeak Activity')
+			ax.errorbar([(1.0/60.0)*t for t in T_c],[a for a in A],yerr=[a for a in sigA],ls='None',marker='o',capsize=5.0,color=self.pallate['gy'],label='Photopeak Activity')
 			T = np.arange(0,1.05*max(T_c),0.01*max(T_c))
 			ax.plot((1.0/60.0)*T,[fit[0]*np.exp(-lm*t) for t in T],lw=2.0,color=self.pallate['k'],label='Exponential Fit')
 			ax.plot((1.0/60.0)*T,[(fit[0]*np.exp(-lm*t)+np.sqrt(unc[0][0])*np.exp(-lm*t)) for t in T],ls='--',lw=2.0,color=self.pallate['k'],label=r'$\pm 1\sigma_{fit}$')
@@ -629,8 +636,8 @@ class experiment(object):
 			ax.legend(loc=0)
 			f.tight_layout()
 			if saveplot:
-				f.savefig('../plots/'+self.directory+'/decay_curves/'+fnm+'_'+istp+'.png')
-				f.savefig('../plots/'+self.directory+'/decay_curves/'+fnm+'_'+istp+'.pdf')
+				f.savefig('../plots/'+self.directory+'/decay_curves/'+fnm.split('.')[0]+'_'+istp+'.png')
+				f.savefig('../plots/'+self.directory+'/decay_curves/'+fnm.split('.')[0]+'_'+istp+'.pdf')
 			if show:
 				plt.show()
 			else:
@@ -642,9 +649,10 @@ class experiment(object):
 		flx = flux_calc(self.directory)
 		mass = {'115INm':{'ab':0.957,'M':114.903},'116INm':{'ab':0.957,'M':114.903},'113INm':{'ab':0.042,'M':112.904},'58CO':{'ab':0.68077,'M':57.935}}
 		reac = {'115INm':'115IN_n_inl_115INm','116INm':'115IN_n_g_116INm','113INm':'113IN_n_inl_113INm','58CO':'58NI_n_p_58CO'}
-		
+		self.flux_detailed = {}
 		for fl in [self.parse_experiment_file(i) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]:
 			flux = []
+			self.flux_detailed[fl['f']] = {}
 			for istp in fl['i']:
 				A0,sig_A0 = self.get_A0(fl['f'],istp)
 				flx.set_sample_params(E0_D2=fl['E0_D2'],R_smpl=fl['R_smpl'],R_src=fl['R_src'],dx=fl['dx'],dy=fl['dy'],dz=fl['dz'],elbow=fl['elbow'])
@@ -652,11 +660,14 @@ class experiment(object):
 				flx.plot_intensity_angle(saveplot=True,show=False)
 				flx.plot_energy_angle(saveplot=True,show=False)
 				sig,unc_sig = flx.get_average_xs(reaction=reac[istp])
+				# print 'Monitor XS=',sig,'+/-',unc_sig
 				I_n = self.one_step_batemann(istp=istp)
 				phi = A0/(1e-3*sig*(mass[istp]['ab']*fl['m']*6.022E-1/mass[istp]['M'])*I_n)
 				unc_phi = np.sqrt(sig_A0**2*(phi/A0)**2+unc_sig**2*(phi/sig)**2)
+				self.flux_detailed[fl['f']][istp] = {'sig':sig,'unc_sig':unc_sig,'E':flx.EdE[0],'dE':flx.EdE[1],'phi':phi,'unc_phi':unc_phi}
 				flux.append((istp,phi,unc_phi))
-			print np.average([i[1] for i in flux],weights=[1.0/i[2]**2 for i in flux])/1e6,'+/-',np.sqrt(np.average([i[2]**2 for i in flux],weights=[1.0/i[2]**2 for i in flux]))/1e6
+			self.db.execute('UPDATE experiment_files SET flux=?, unc_flux=? WHERE filename=?',(np.average([i[1] for i in flux],weights=[1.0/i[2]**2 for i in flux]),np.sqrt(np.average([i[2]**2 for i in flux],weights=[1.0/i[2]**2 for i in flux])),fl['f']))
+		self.db_connection.commit()
 	def one_step_batemann(self,istp='115INm',units='hours',saveplot=True,show=False):
 		u_conv = {'seconds':1.0,'minutes':60.0,'hours':3600.0,'days':24.0*3600.0,'weeks':7.0*24.0*3600.0}[units]
 		ip = isotope(istp)
@@ -667,6 +678,8 @@ class experiment(object):
 		stop = [dtm.datetime(t[0][0],t[0][1],t[0][2],t[1][0],t[1][1],t[1][2]) for t in stop]
 		I_n = [1.0-np.exp(-lm*(stop[0]-start[0]).total_seconds())]
 		N = len(start)
+		# for n in range(N):
+		# 	print start[n].strftime("%H:%M %m/%d/%Y"),'&',stop[n].strftime("%H:%M %m/%d/%Y"),'&',round((stop[n]-start[n]).total_seconds()/3600.0,1),r'\\'
 		for n in range(1,N):
 			I_n.append(1.0-(1.0-I_n[-1]*np.exp(-lm*(stop[n]-stop[n-1]).total_seconds()))*np.exp(-lm*(stop[n]-start[n]).total_seconds()))
 		if saveplot or show:
@@ -684,9 +697,9 @@ class experiment(object):
 				I += I_m
 			T = [i/u_conv for i in T]
 			f,ax = plt.subplots()
-			ax.plot(T,I,color=self.pallate['k'],lw=2.0,label='Saturation Factor')
+			ax.plot(T,I,color=self.pallate['k'],lw=2.0,label='Saturation Fraction')
 			ax.set_xlabel('Experiment Time ['+units+']')
-			ax.set_ylabel('Saturation Factor [a.u.]')
+			ax.set_ylabel('Saturation Fraction [a.u.]')
 			ax.legend(loc=0)
 			f.tight_layout()
 			if saveplot:
@@ -697,12 +710,162 @@ class experiment(object):
 			else:
 				plt.close()
 		return I_n[-1]
+	def flux_TeX(self,flux,unc_flux):
+		N = int(np.log(flux)/np.log(10))
+		return '('+str(round(flux/10**N,2))+r'$\pm$'+str(round(unc_flux/10**N,2))+r')$\cdot 10^'+str(N)+r'$'
+	def save_tex(self,ss,tex):
+		f = open(tex+'.tex','w')
+		f.write(ss)
+		f.close()
+	def generate_abstract(self):
+		ab = 'In this experiment we use the foil activation technique to measure the fast neutron flux in the Berkeley High Flux Neutron Generator (HFNG).  '
+		ab += 'The irradiation began at '
+		times = [[[m.split(':') for m in str(i[1]).split('::')],[m.split(':') for m in str(i[2]).split('::')]] for i in self.db.execute('SELECT * FROM irradiation_history WHERE directory=? ORDER BY stop_time ASC',(self.directory,))]
+		ab += times[0][0][1][0]+':'+times[0][0][1][1]+' on '+times[0][0][0][1]+'/'+times[0][0][0][2]+'/'+times[0][0][0][0]
+		ab += ' and ended at '+times[-1][1][1][0]+':'+times[-1][1][1][1]+' on '+times[-1][1][0][1]+'/'+times[-1][1][0][2]+'/'+times[-1][1][0][0]
+		flx = sorted([(float(i[11]),float(i[12])) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))],key=lambda h:h[0])
+		ab += r'  The peak flux measured was '+self.flux_TeX(flx[-1][0],flx[-1][1])+r' [$\frac{n}{cm^2s}$] using the following monitor channel(s): '
+		chnl = {'115INm':r'$^{115}$In(n,n'+"'"+r')$^{115m}$In','113INm':r'$^{113}$In(n,n'+"'"+r')$^{113m}$In','116INm':r'$^{115}$In(n,$\gamma$)$^{116m}$In','58CO':r'$^{58}$Ni(n,p)$^{58}$Co'}
+		ab += ', '.join([chnl[m] for m in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))][0]])+'.'
+		self.save_tex(ab,'abstract')
+	def generate_batemann(self):
+		ss = ''
+		for istp in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))][0]:
+			ss += r'\begin{figure}[htb]'+'\n'
+			ss += r'\includegraphics[width=9cm]{monitors/'+istp+'_batemann.pdf}'+'\n'
+			ss += r'\caption{Saturation fraction, $F_S$ for the '+isotope(istp).TeX()+' isotope during the irradiation period.\n}\n'
+			ss += r'\label{fig:'+istp+'_batemann}'+'\n'
+			ss += r'\end{figure}'+'\n\n'
+		self.save_tex(ss,'batemann')
+	def generate_decay_curves(self):
+		ss = ''
+		for smpl,fnm in enumerate([str(i[0]) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
+			for istp in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=? AND filename=?',(self.directory,fnm))][0]:
+				ss += r'\begin{figure}[htb]'+'\n'
+				ss += r'\includegraphics[width=9cm]{decay_curves/'+fnm.split('.')[0]+'_'+istp+'.pdf}\n'
+				ss += r'\caption{Exponential fit to the peak activities of '+isotope(istp).TeX()+' measured in Sample '+str(smpl)+'.\n}\n'
+				ss += r'\label{fig:'+fnm.split('.')[0]+'_'+istp+'}\n'
+				ss += r'\end{figure}'+'\n\n'
+		self.save_tex(ss,'decay_curves')
+	def generate_flux_detailed(self):
+		ss = ''
+		chnl = {'115INm':r'$^{115}$In(n,n'+"'"+r')$^{115m}$In','113INm':r'$^{113}$In(n,n'+"'"+r')$^{113m}$In','116INm':r'$^{115}$In(n,$\gamma$)$^{116m}$In','58CO':r'$^{58}$Ni(n,p)$^{58}$Co'}
+		for smpl,fnm in enumerate([str(i[0]) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
+			for istp in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=? AND filename=?',(self.directory,fnm))][0]:
+				ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],2))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+self.flux_TeX(self.flux_detailed[fnm][istp]['phi'],self.flux_detailed[fnm][istp]['unc_phi'])+r' \\'+'\n'
+		self.save_tex(ss,'flux_detailed')
+	def generate_flux_plots(self):
+		ss = ''
+		for n,sm in enumerate([self.parse_experiment_file(i) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
+			ss += r'\begin{figure}[htb]'+'\n'
+			ss += r'\includegraphics[width=9cm]{monitors/'+str(int(sm['dx']))+str(int(sm['dy']))+str(int(sm['dz']))+str(sm['elbow'])+'.pdf}\n'
+			ss += r'\caption{Energy spectrum, mean and $\pm 1\sigma_E$ for sample '+str(n+1)+' calculated by Monte Carlo method.}'+'\n'
+			ss += r'\label{fig:Spectrum'+str(n+1)+'}\n'
+			ss += r'\end{figure}'+'\n\n'
+		self.save_tex(ss,'flux_plots')
+	def generate_flux_summary(self):
+		ss = ''
+		for smpl,fnm in enumerate([[str(i[0]),float(i[11]),float(i[12])] for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
+			istp = [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=? AND filename=?',(self.directory,fnm[0]))][0][0]
+			ss += str(smpl+1)+' & '+str(round(self.flux_detailed[fnm[0]][istp]['E'],2))+r' $\pm$ '+str(round(self.flux_detailed[fnm[0]][istp]['dE'],3))+' & '+self.flux_TeX(fnm[1],fnm[2])+r' \\'+'\n'
+		self.save_tex(ss,'flux_summary')
+	def generate_graphics_path(self):
+		ss = r'\graphicspath{{../../plots/'+self.directory+r'/}{../../plots/pictures/}}'
+		self.save_tex(ss,'graphics_path')
+	def generate_irradiation_history(self):
+		ss = ''
+		start = [[[int(t) for t in m.split(':')] for m in i[1].split('::')] for i in self.db.execute('SELECT * FROM irradiation_history WHERE directory=? ORDER BY stop_time ASC',(self.directory,))]
+		start = [dtm.datetime(t[0][0],t[0][1],t[0][2],t[1][0],t[1][1],t[1][2]) for t in start]
+		stop = [[[int(t) for t in m.split(':')] for m in i[2].split('::')] for i in self.db.execute('SELECT * FROM irradiation_history WHERE directory=? ORDER BY stop_time ASC',(self.directory,))]
+		stop = [dtm.datetime(t[0][0],t[0][1],t[0][2],t[1][0],t[1][1],t[1][2]) for t in stop]
+		N = len(start)
+		for n in range(N):
+			ss += str(start[n].strftime("%H:%M %m/%d/%Y"))+' & '+str(stop[n].strftime("%H:%M %m/%d/%Y"))+' & '+str(round((stop[n]-start[n]).total_seconds()/3600.0,1))+r' \\'+'\n'
+		self.save_tex(ss,'irradiation_history')
+	def generate_monitor_table(self):
+		ss = ''
+		chnl = {'115INm':r'$^{115}$In(n,n'+"'"+r')$^{115m}$In','113INm':r'$^{113}$In(n,n'+"'"+r')$^{113m}$In','116INm':r'$^{115}$In(n,$\gamma$)$^{116m}$In','58CO':r'$^{58}$Ni(n,p)$^{58}$Co'}
+		for smpl,fnm in enumerate([str(i[0]) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
+			for istp in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=? AND filename=?',(self.directory,fnm))][0]:
+				ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],2))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+str(round(self.flux_detailed[fnm][istp]['sig'],1))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['unc_sig'],1))+r' \\'+'\n'
+		self.save_tex(ss,'monitor_table')
+	def generate_monitor_xs(self):
+		ss = ''
+		chnl = {'115INm':r'$^{115}$In(n,n'+"'"+r')$^{115m}$In','113INm':r'$^{113}$In(n,n'+"'"+r')$^{113m}$In','116INm':r'$^{115}$In(n,$\gamma$)$^{116m}$In','58CO':r'$^{58}$Ni(n,p)$^{58}$Co'}
+		chn = {'115INm':'115IN_n_inl_115INm','113INm':'113IN_n_inl_113INm','116INm':'115IN_n_g_116INm','58CO':'58NI_n_p_58CO'}
+		for istp in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))][0]:
+			ss += r'\begin{figure}[htb]'+'\n'
+			ss += r'\includegraphics[width=9cm]{cross_sections/'+chn[istp]+'.pdf}'+'\n'
+			ss += r'\caption{'+chnl[istp]+' cross section.  Data points are from EXFOR, solid/dashed lines are interpolated and $\pm 1\sigma$ values.}'+'\n'
+			ss += r'\label{fig:'+chn[istp]+'}'+'\n'
+			ss += r'\end{figure}'+'\n\n'
+		self.save_tex(ss,'monitor_xs')
+	def generate_peak_fit_plots(self):
+		ss = ''
+		for fnm in [str(i[0]) for i in self.db.execute('SELECT * FROM calibration_files WHERE directory=?',(self.directory,))]:
+			ss += r'\begin{figure}[htb]'+'\n'
+			ss += r'\includegraphics[width=\textwidth]{peak_fits/'+fnm.split('.')[0]+'.pdf}\n'
+			ss += r'\caption{$\gamma$-ray energy spectrum and peak fits in \texttt{\detokenize{'+fnm+r'}}}'+'\n'
+			ss += r'\label{fig:'+fnm.split('.')[0]+'}\n'
+			ss += r'\end{figure}'+'\n\n'
+		for fnm in [str(i[0]) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]:
+			ss += r'\begin{figure}[htb]'+'\n'
+			ss += r'\includegraphics[width=\textwidth]{peak_fits/'+fnm.split('.')[0]+'.pdf}\n'
+			ss += r'\caption{$\gamma$-ray energy spectrum and peak fits in \texttt{\detokenize{'+fnm+r'}}}'+'\n'
+			ss += r'\label{fig:'+fnm.split('.')[0]+'}\n'
+			ss += r'\end{figure}'+'\n\n'
+		self.save_tex(ss,'peak_fit_plots')
+	def generate_peak_table(self):
+		ss = ''
+		for pk in [self.parse_calibration_peaks(i) for i in self.db.execute('SELECT * FROM calibration_peaks WHERE directory=?',(self.directory,))]:
+			ss += ' & '.join([r'\texttt{\detokenize{'+pk['fnm']+'}}',isotope(pk['istp']).TeX(),str(pk['eng']),str(pk['I'])+r'$\pm$'+str(pk['unc_I']),str(pk['N'])+r'$\pm$'+str(pk['unc_N']),str(round(pk['chi2'],1))])+r' \\'+'\n'
+		for fl in [self.parse_experiment_file(i) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]:
+			for pk in [self.parse_experiment_peaks(i) for i in self.db.execute('SELECT * FROM experiment_peaks WHERE filename=?',(fl['f'],))]:
+				ss += ' & '.join([r'\texttt{\detokenize{'+pk['fnm']+'}}',isotope(pk['istp']).TeX(),str(pk['eng']),str(pk['I'])+r'$\pm$'+str(pk['unc_I']),str(int(pk['N']))+r'$\pm$'+str(int(pk['unc_N'])),str(round(pk['chi2'],1))])+r' \\'+'\n'
+		self.save_tex(ss,'peak_table')
+	def generate_sample_mass(self):
+		ss = ''
+		chnl = {'115INm':'In','113INm':'In','116INm':'In','58CO':'Ni'}
+		for n,fl in enumerate([self.parse_experiment_file(i) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
+			ss += str(n+1)+' & '+chnl[fl['i'][0]]+' & '+str(fl['m'])+r' & \texttt{\detokenize{'+fl['f']+r'}} \\'+'\n'
+		self.save_tex(ss,'sample_mass')
+	def generate_sample_positions(self):
+		ss = ''
+		for n,fl in enumerate([self.parse_experiment_file(i) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
+			ss += str(n+1)+' & '+str(fl['R_smpl'])+' & '+str(fl['dx'])+' & '+str(fl['dy'])+' & '+str(fl['dz'])+' & '+('90' if fl['elbow'] else '0')+r' \\'+'\n'
+		self.save_tex(ss,'sample_positions')
+	def generate_tex_files(self):
+		os.chdir('../reports/'+self.directory)
+		self.generate_abstract()
+		self.generate_batemann()
+		self.generate_decay_curves()
+		self.generate_flux_detailed()
+		self.generate_flux_plots()
+		self.generate_flux_summary()
+		self.generate_graphics_path()
+		self.generate_irradiation_history()
+		self.generate_monitor_table()
+		self.generate_monitor_xs()
+		self.generate_peak_fit_plots()
+		self.generate_peak_table()
+		self.generate_sample_mass()
+		self.generate_sample_positions()
+		os.chdir('../../code/')
+	def run_latex(self):
+		os.chdir('../reports/'+self.directory)
+		os.putenv('PATH',os.getenv('PATH')+':/usr/local/texlive/2017/bin/x86_64-linux')
+		for i in range(3):
+			os.system('pdflatex -synctex=1 -interaction=nonstopmode '+self.directory+'_report.tex')
+		os.chdir('../../code/')
+		os.system('cp ../reports/'+self.directory+'/'+self.directory+'_report.pdf ../reports/'+self.directory+'_report.pdf')
 	def generate_report(self):
 		self.update_files()
 		self.create_plots_dir()
 		self.update_calibration()
 		self.fit_experiment_peaks()
 		self.calculate_flux()
+		self.generate_tex_files()
+		self.run_latex()
 
 
 # fc = flux_calc()
