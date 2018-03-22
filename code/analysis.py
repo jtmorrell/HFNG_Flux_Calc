@@ -87,7 +87,7 @@ class flux_calc(object):
 		xy_smpl = [(dx+r*np.cos(tht_smpl[n]),dy+r*np.sin(tht_smpl[n])) for n,r in enumerate(r_smpl)]
 		#calculate angle/energy
 		if elbow:
-			angle_deg = [180.0*np.arccos((dx-xy_smpl[n][0])/np.sqrt((dz-s[0])**2+(xy_smpl[n][1]-s[1])**2+(dx-xy_smpl[n][0])**2))/np.pi for n,s in enumerate(xy_src)]
+			angle_deg = [180.0*np.arccos((dz-xy_smpl[n][0])/np.sqrt((dz-xy_smpl[n][0])**2+(xy_smpl[n][1]-s[1])**2+(dx-s[0])**2))/np.pi for n,s in enumerate(xy_src)]
 		else:
 			angle_deg = [180.0*np.arccos(dz/np.sqrt((xy_smpl[n][0]-s[0])**2+(xy_smpl[n][1]-s[1])**2+dz**2))/np.pi for n,s in enumerate(xy_src)]
 		E_n = list(map(eng_func,angle_deg))
@@ -678,12 +678,10 @@ class experiment(object):
 		stop = [dtm.datetime(t[0][0],t[0][1],t[0][2],t[1][0],t[1][1],t[1][2]) for t in stop]
 		I_n = [1.0-np.exp(-lm*(stop[0]-start[0]).total_seconds())]
 		N = len(start)
-		# for n in range(N):
-		# 	print start[n].strftime("%H:%M %m/%d/%Y"),'&',stop[n].strftime("%H:%M %m/%d/%Y"),'&',round((stop[n]-start[n]).total_seconds()/3600.0,1),r'\\'
 		for n in range(1,N):
 			I_n.append(1.0-(1.0-I_n[-1]*np.exp(-lm*(stop[n]-stop[n-1]).total_seconds()))*np.exp(-lm*(stop[n]-start[n]).total_seconds()))
 		if saveplot or show:
-			dT = 0.05/lm
+			dT = 0.05/lm if 0.05/lm<0.1*(stop[0]-start[0]).total_seconds() else (stop[0]-start[0]).total_seconds()/100.0
 			T = np.arange(0,(stop[0]-start[0]).total_seconds(),dT).tolist()
 			I = [(1.0-np.exp(-lm*t)) for t in T]
 			for m in range(1,N):
@@ -752,7 +750,7 @@ class experiment(object):
 		chnl = {'115INm':r'$^{115}$In(n,n'+"'"+r')$^{115m}$In','113INm':r'$^{113}$In(n,n'+"'"+r')$^{113m}$In','116INm':r'$^{115}$In(n,$\gamma$)$^{116m}$In','58CO':r'$^{58}$Ni(n,p)$^{58}$Co'}
 		for smpl,fnm in enumerate([str(i[0]) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
 			for istp in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=? AND filename=?',(self.directory,fnm))][0]:
-				ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],2))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+self.flux_TeX(self.flux_detailed[fnm][istp]['phi'],self.flux_detailed[fnm][istp]['unc_phi'])+r' \\'+'\n'
+				ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],3))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+self.flux_TeX(self.flux_detailed[fnm][istp]['phi'],self.flux_detailed[fnm][istp]['unc_phi'])+r' \\'+'\n'
 		self.save_tex(ss,'flux_detailed')
 	def generate_flux_plots(self):
 		ss = ''
@@ -767,7 +765,7 @@ class experiment(object):
 		ss = ''
 		for smpl,fnm in enumerate([[str(i[0]),float(i[11]),float(i[12])] for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
 			istp = [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=? AND filename=?',(self.directory,fnm[0]))][0][0]
-			ss += str(smpl+1)+' & '+str(round(self.flux_detailed[fnm[0]][istp]['E'],2))+r' $\pm$ '+str(round(self.flux_detailed[fnm[0]][istp]['dE'],3))+' & '+self.flux_TeX(fnm[1],fnm[2])+r' \\'+'\n'
+			ss += str(smpl+1)+' & '+str(round(self.flux_detailed[fnm[0]][istp]['E'],3))+r' $\pm$ '+str(round(self.flux_detailed[fnm[0]][istp]['dE'],3))+' & '+self.flux_TeX(fnm[1],fnm[2])+r' \\'+'\n'
 		self.save_tex(ss,'flux_summary')
 	def generate_graphics_path(self):
 		ss = r'\graphicspath{{../../plots/'+self.directory+r'/}{../../plots/pictures/}}'
@@ -787,7 +785,7 @@ class experiment(object):
 		chnl = {'115INm':r'$^{115}$In(n,n'+"'"+r')$^{115m}$In','113INm':r'$^{113}$In(n,n'+"'"+r')$^{113m}$In','116INm':r'$^{115}$In(n,$\gamma$)$^{116m}$In','58CO':r'$^{58}$Ni(n,p)$^{58}$Co'}
 		for smpl,fnm in enumerate([str(i[0]) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
 			for istp in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=? AND filename=?',(self.directory,fnm))][0]:
-				ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],2))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+str(round(self.flux_detailed[fnm][istp]['sig'],1))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['unc_sig'],1))+r' \\'+'\n'
+				ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],3))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+str(round(self.flux_detailed[fnm][istp]['sig'],1))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['unc_sig'],1))+r' \\'+'\n'
 		self.save_tex(ss,'monitor_table')
 	def generate_monitor_xs(self):
 		ss = ''
@@ -877,8 +875,10 @@ class experiment(object):
 # sp = spectrum('Eu_centered.Spe')
 # sp.plot_fits(wfit=True)
 
-expt = experiment('112017_Cantarini_indium')
+# expt = experiment('112017_Cantarini_indium')
 # expt = experiment('031218_Daniel_Ni')
+# expt = experiment('031218_Daniel_offset')
+expt = experiment('102317_Batch_Ni')
 # expt.update_files()
 # expt.create_plots_dir()
 # expt.update_calibration()
