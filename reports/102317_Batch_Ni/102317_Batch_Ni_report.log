@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2018.2.27)  22 MAR 2018 10:00
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2018.2.27)  19 APR 2018 13:07
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -569,7 +569,7 @@ LaTeX Warning: A float is stuck (cannot be placed) on input line 273.
 Class revtex4-1 Warning: Deferred float stuck during \clearpage processing.
 
 
-<../../plots/102317_Batch_Ni/monitors/intensity_angle.pdf, id=325, 462.52798pt 
+<../../plots/102317_Batch_Ni/monitors/intensity_angle.pdf, id=323, 462.52798pt 
 x 346.89601pt>
 File: ../../plots/102317_Batch_Ni/monitors/intensity_angle.pdf Graphic file (ty
 pe pdf)
@@ -582,7 +582,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 275--276
  [][] 
  []
 
-<../../plots/pictures/MC201_Graphic.png, id=327, 963.6pt x 722.7pt>
+<../../plots/pictures/MC201_Graphic.png, id=325, 963.6pt x 722.7pt>
 File: ../../plots/pictures/MC201_Graphic.png Graphic file (type png)
 
 <use ../../plots/pictures/MC201_Graphic.png>
@@ -595,7 +595,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 292--293
  []
 
 (./flux_plots.tex
-<../../plots/102317_Batch_Ni/monitors/008False.pdf, id=328, 462.52798pt x 346.8
+<../../plots/102317_Batch_Ni/monitors/008False.pdf, id=326, 462.52798pt x 346.8
 9601pt>
 File: ../../plots/102317_Batch_Ni/monitors/008False.pdf Graphic file (type pdf)
 
@@ -609,7 +609,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 2--3
  []
 
 
-<../../plots/102317_Batch_Ni/monitors/988False.pdf, id=329, 462.52798pt x 346.8
+<../../plots/102317_Batch_Ni/monitors/988False.pdf, id=327, 462.52798pt x 346.8
 9601pt>
 File: ../../plots/102317_Batch_Ni/monitors/988False.pdf Graphic file (type pdf)
 
@@ -623,7 +623,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 8--9
  []
 
 
-<../../plots/102317_Batch_Ni/monitors/1808False.pdf, id=330, 462.52798pt x 346.
+<../../plots/102317_Batch_Ni/monitors/1808False.pdf, id=328, 462.52798pt x 346.
 89601pt>
 File: ../../plots/102317_Batch_Ni/monitors/1808False.pdf Graphic file (type pdf
 )
@@ -637,7 +637,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 14--15
  []
 
 
-<../../plots/102317_Batch_Ni/monitors/3608False.pdf, id=331, 462.52798pt x 346.
+<../../plots/102317_Batch_Ni/monitors/3608False.pdf, id=329, 462.52798pt x 346.
 89601pt>
 File: ../../plots/102317_Batch_Ni/monitors/3608False.pdf Graphic file (type pdf
 )
@@ -651,7 +651,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 20--21
  []
 
 
-<../../plots/102317_Batch_Ni/monitors/460-7True.pdf, id=332, 462.52798pt x 346.
+<../../plots/102317_Batch_Ni/monitors/460-7True.pdf, id=330, 462.52798pt x 346.
 89601pt>
 File: ../../plots/102317_Batch_Ni/monitors/460-7True.pdf Graphic file (type pdf
 )
@@ -665,7 +665,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 26--27
  []
 
 ) (./monitor_xs.tex
-<../../plots/102317_Batch_Ni/cross_sections/58NI_n_p_58CO.pdf, id=334, 462.5279
+<../../plots/102317_Batch_Ni/cross_sections/58NI_n_p_58CO.pdf, id=332, 462.5279
 8pt x 346.89601pt>
 File: ../../plots/102317_Batch_Ni/cross_sections/58NI_n_p_58CO.pdf Graphic file
  (type pdf)
@@ -706,7 +706,7 @@ LaTeX Warning: A float is stuck (cannot be placed) on input line 320.
 Class revtex4-1 Warning: Deferred float stuck during \clearpage processing.
 
 (./decay_curves.tex
-<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_1_58CO.pdf, id=419, 462.52798
+<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_1_58CO.pdf, id=418, 462.52798
 pt x 346.89601pt>
 File: ../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_1_58CO.pdf Graphic file 
 (type pdf)
@@ -721,7 +721,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 2--3
  []
 
 
-<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_2_58CO.pdf, id=420, 462.52798
+<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_2_58CO.pdf, id=419, 462.52798
 pt x 346.89601pt>
 File: ../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_2_58CO.pdf Graphic file 
 (type pdf)
@@ -736,7 +736,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 9--10
  []
 
 
-<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_3_58CO.pdf, id=421, 462.52798
+<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_3_58CO.pdf, id=420, 462.52798
 pt x 346.89601pt>
 File: ../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_3_58CO.pdf Graphic file 
 (type pdf)
@@ -751,7 +751,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 16--17
  []
 
 
-<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_4_58CO.pdf, id=422, 462.52798
+<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_4_58CO.pdf, id=421, 462.52798
 pt x 346.89601pt>
 File: ../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_4_58CO.pdf Graphic file 
 (type pdf)
@@ -766,7 +766,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 23--24
  []
 
 
-<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_5_58CO.pdf, id=423, 462.52798
+<../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_5_58CO.pdf, id=422, 462.52798
 pt x 346.89601pt>
 File: ../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl_5_58CO.pdf Graphic file 
 (type pdf)
@@ -843,7 +843,7 @@ pdfTeX warning: pdflatex (file ../../plots/102317_Batch_Ni/decay_curves/Ni_NaCl
 _5_58CO.pdf): PDF inclusion: multiple pdfs with page group included in a single
  page
 >] (./peak_fit_plots.tex
-<../../plots/102317_Batch_Ni/peak_fits/152Eu.pdf, id=1028, 925.05597pt x 346.89
+<../../plots/102317_Batch_Ni/peak_fits/152Eu.pdf, id=1025, 925.05597pt x 346.89
 601pt>
 File: ../../plots/102317_Batch_Ni/peak_fits/152Eu.pdf Graphic file (type pdf)
  <use ../../plots/102317_Batch_Ni/peak_fits/152Eu.pdf>
@@ -851,7 +851,7 @@ Package pdftex.def Info: ../../plots/102317_Batch_Ni/peak_fits/152Eu.pdf used o
 n input line 2.
 (pdftex.def)             Requested size: 510.0pt x 191.25389pt.
 
-<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_1.pdf, id=1029, 925.05597pt x 34
+<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_1.pdf, id=1026, 925.05597pt x 34
 6.89601pt>
 File: ../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_1.pdf Graphic file (type pd
 f)
@@ -860,7 +860,7 @@ Package pdftex.def Info: ../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_1.pdf us
 ed on input line 8.
 (pdftex.def)             Requested size: 510.0pt x 191.25389pt.
 
-<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_2.pdf, id=1030, 925.05597pt x 34
+<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_2.pdf, id=1027, 925.05597pt x 34
 6.89601pt>
 File: ../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_2.pdf Graphic file (type pd
 f)
@@ -869,7 +869,7 @@ Package pdftex.def Info: ../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_2.pdf us
 ed on input line 14.
 (pdftex.def)             Requested size: 510.0pt x 191.25389pt.
 
-<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_3.pdf, id=1031, 925.05597pt x 34
+<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_3.pdf, id=1028, 925.05597pt x 34
 6.89601pt>
 File: ../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_3.pdf Graphic file (type pd
 f)
@@ -878,7 +878,7 @@ Package pdftex.def Info: ../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_3.pdf us
 ed on input line 20.
 (pdftex.def)             Requested size: 510.0pt x 191.25389pt.
 
-<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_4.pdf, id=1032, 925.05597pt x 34
+<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_4.pdf, id=1029, 925.05597pt x 34
 6.89601pt>
 File: ../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_4.pdf Graphic file (type pd
 f)
@@ -887,7 +887,7 @@ Package pdftex.def Info: ../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_4.pdf us
 ed on input line 26.
 (pdftex.def)             Requested size: 510.0pt x 191.25389pt.
 
-<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_5.pdf, id=1033, 925.05597pt x 34
+<../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_5.pdf, id=1030, 925.05597pt x 34
 6.89601pt>
 File: ../../plots/102317_Batch_Ni/peak_fits/Ni_NaCl_5.pdf Graphic file (type pd
 f)
@@ -919,9 +919,9 @@ Underfull \hbox (badness 10000) in paragraph at lines 393--394
 
  []
 
-(./peak_table.tex)
+(./peak_table.tex) [12]
 No file 102317_Batch_Ni_report.bbl.
-[12]
+[13]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 403.
  (./102317_Batch_Ni_report.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 403.
@@ -931,9 +931,9 @@ Package rerunfilecheck Info: File `102317_Batch_Ni_report.out' has not changed.
 (rerunfilecheck)             Checksum: 4BEAA317CEACF857C444B3E1529E57BE;793.
  ) 
 Here is how much of TeX's memory you used:
- 8427 strings out of 494953
- 122237 string characters out of 6180977
- 325839 words of memory out of 5000000
+ 8428 strings out of 494953
+ 122244 string characters out of 6180977
+ 330839 words of memory out of 5000000
  11461 multiletter control sequences out of 15000+600000
  16796 words of font info for 63 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
@@ -959,10 +959,10 @@ lic/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/ams
 fonts/cm/cmti9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/c
 m/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt
 9.pfb>
-Output written on 102317_Batch_Ni_report.pdf (12 pages, 755768 bytes).
+Output written on 102317_Batch_Ni_report.pdf (13 pages, 759540 bytes).
 PDF statistics:
- 1371 PDF objects out of 1440 (max. 8388607)
- 426 compressed objects within 5 object streams
- 69 named destinations out of 1000 (max. 500000)
+ 1373 PDF objects out of 1440 (max. 8388607)
+ 430 compressed objects within 5 object streams
+ 70 named destinations out of 1000 (max. 500000)
  230 words of extra memory for PDF output out of 10000 (max. 10000000)
 

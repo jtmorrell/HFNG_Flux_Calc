@@ -1,0 +1,13 @@
+f=foil1.Spe,m=0.1407,i=115INm;116INm;113INm,E0_D2=102.6,dx=-9.75,dy=9.75,dz=8.5,R_src=11.0,R_smpl=4.0,elbow=0
+f=foil2.Spe,m=0.1566,i=115INm;116INm;113INm,E0_D2=102.6,dx=0.0,dy=9.75,dz=8.5,R_src=11.0,R_smpl=4.0,elbow=0
+f=foil3.Spe,m=0.1212,i=115INm;116INm;113INm,E0_D2=102.6,dx=9.75,dy=9.75,dz=8.5,R_src=11.0,R_smpl=4.0,elbow=0
+f=foil4.Spe,m=0.1553,i=115INm;116INm;113INm,E0_D2=102.6,dx=-9.75,dy=0.0,dz=8.5,R_src=11.0,R_smpl=4.0,elbow=0
+f=foil5.Spe,m=0.1169,i=115INm;116INm;113INm,E0_D2=102.6,dx=0.0,dy=0.0,dz=8.5,R_src=11.0,R_smpl=4.0,elbow=0
+f=foil6.Spe,m=0.1411,i=115INm;116INm;113INm,E0_D2=102.6,dx=9.75,dy=0.0,dz=8.5,R_src=11.0,R_smpl=4.0,elbow=0
+f=foil7.Spe,m=0.1149,i=115INm;116INm;113INm,E0_D2=102.6,dx=-9.75,dy=-9.75,dz=8.5,R_src=11.0,R_smpl=4.0,elbow=0
+f=foil8.Spe,m=0.1232,i=115INm;116INm;113INm,E0_D2=102.6,dx=0.0,dy=-9.75,dz=8.5,R_src=11.0,R_smpl=4.0,elbow=0
+f=foil9.Spe,m=0.1773,i=115INm;116INm;113INm,E0_D2=102.6,dx=9.75,dy=-9.75,dz=8.5,R_src=11.0,R_smpl=4.0,elbow=0
+*************
+c=calib.Spe,i=152EU,a0=39.368E3,d=2009:01:15::12:00:00
+*************
+start=2017:06:19::12:30:45,stop=2017:06:19::15:42:00

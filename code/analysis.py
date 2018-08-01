@@ -84,16 +84,18 @@ class flux_calc(object):
 		xy_src = [(abs(r)*np.cos(tht_src[n]),abs(r)*np.sin(tht_src[n])) for n,r in enumerate(r_src)]
 		#select sample position (uniform)
 		r_smpl,tht_smpl = R_smpl*np.sqrt(rand(int(Nps))),2.0*np.pi*rand(int(Nps))
-		xy_smpl = [(dx+r*np.cos(tht_smpl[n]),dy+r*np.sin(tht_smpl[n])) for n,r in enumerate(r_smpl)]
+		smpl_area = np.pi*R_smpl**2
+		xy_smpl = [(r*np.cos(tht_smpl[n]),r*np.sin(tht_smpl[n])) for n,r in enumerate(r_smpl)]
 		#calculate angle/energy
 		if elbow:
-			angle_deg = [180.0*np.arccos((dz-xy_smpl[n][0])/np.sqrt((dz-xy_smpl[n][0])**2+(xy_smpl[n][1]-s[1])**2+(dx-s[0])**2))/np.pi for n,s in enumerate(xy_src)]
+			dist = [np.sqrt((dz-xy_smpl[n][0])**2+(dy+xy_smpl[n][1]-s[1])**2+(dx-s[0])**2) for n,s in enumerate(xy_src)]
+			angle_deg = [180.0*np.arccos((dz-xy_smpl[n][0])/d)/np.pi for n,d in enumerate(dist)]
 		else:
-			angle_deg = [180.0*np.arccos(dz/np.sqrt((xy_smpl[n][0]-s[0])**2+(xy_smpl[n][1]-s[1])**2+dz**2))/np.pi for n,s in enumerate(xy_src)]
+			dist = [np.sqrt(dz**2+((dx+xy_smpl[n][0]-s[0])**2+(dy+xy_smpl[n][1]-s[1])**2)) for n,s in enumerate(xy_src)]
+			angle_deg = [180.0*np.arccos(dz/d)/np.pi for d in dist]
 		E_n = list(map(eng_func,angle_deg))
 		#calculate weight
-		dist = [np.sqrt(dz**2+((xy_smpl[n][0]-s[0])**2+(xy_smpl[n][1]-s[1])**2)) for n,s in enumerate(xy_src)]
-		wts = [yield_func(angle_deg[n])/d**2 for n,d in enumerate(dist)]
+		wts = [yield_func(angle_deg[n])*(np.exp(-0.0214*d) if angle_deg[n]<90.0 else 1.0)*(0.5*R_smpl/d)**2 for n,d in enumerate(dist)]
 		#sum wts
 		hist,bin_edges = np.histogram(E_n,bins='auto')
 		mu_E,sig_E,L = np.average(E_n),np.std(E_n),len(bin_edges)
@@ -106,7 +108,6 @@ class flux_calc(object):
 				m -= 1
 			hist[m] += wts[n]
 			unc[m] += wts[n]**2
-		self.spec = (bin_edges,hist,np.sqrt(unc))
 		return bin_edges,hist,np.sqrt(unc)
 	def set_sample_params(self,E0_D2=102.6,dx=0.0,dy=0.0,dz=9.5,R_src=7.0,R_smpl=5.5,elbow=False):
 		self.sp = {'E0_D2':E0_D2,'dx':dx,'dy':dy,'dz':dz,'R_src':R_src,'R_smpl':R_smpl,'elbow':elbow}
@@ -191,14 +192,21 @@ class flux_calc(object):
 		return avg_xs,unc_avg_xs
 
 class spectrum(object):
-	def __init__(self,filename):
+	def __init__(self,filename,directory=None):
 		self.db_connection = _db_connection
 		self.db = _db
-		meta = [[str(i[1]),str(i[3]).split(';')] for i in self.db.execute('SELECT * FROM experiment_files WHERE filename=?',(filename,))]
-		if len(meta)==0:
-			meta = [[str(i[1]),[str(i[2])]] for i in self.db.execute('SELECT * FROM calibration_files WHERE filename=?',(filename,))]
-		self.directory = meta[0][0]
-		self.isotope_list = meta[0][1]
+		if directory is None:
+			meta = [[str(i[1]),str(i[3]).split(';')] for i in self.db.execute('SELECT * FROM experiment_files WHERE filename=?',(filename,))]
+			if len(meta)==0:
+				meta = [[str(i[1]),[str(i[2])]] for i in self.db.execute('SELECT * FROM calibration_files WHERE filename=?',(filename,))]
+			self.directory = meta[0][0]
+			self.isotope_list = meta[0][1]
+		else:
+			self.directory = directory
+			meta = [[str(i[1]),str(i[3]).split(';')] for i in self.db.execute('SELECT * FROM experiment_files WHERE filename=? AND directory=?',(filename,directory))]
+			if len(meta)==0:
+				meta = [[str(i[1]),[str(i[2])]] for i in self.db.execute('SELECT * FROM calibration_files WHERE filename=? AND directory=?',(filename,directory))]
+			self.isotope_list = meta[0][1]
 		self.filename = filename.split('.')[0]
 		f = open('../data/spectra/'+self.directory+'/'+filename,'r').read().split('\n')
 		self.start_time = dtm.datetime.strptime(f[7].replace('\r',''),'%m/%d/%Y %H:%M:%S')
@@ -283,7 +291,7 @@ class spectrum(object):
 		a,b,L = self.calibration[0],self.calibration[1],len(self.spec)
 		for itp in self.isotope_list:
 			ip = isotope(itp)
-			gammas += [(ip.name(),ip.decay_const())+g for g in ip.gammas(Imin=0.11) if int((g[0]-b)/a)<L]
+			gammas += [(ip.name(),ip.decay_const())+g for g in ip.gammas(Imin=0.01) if int((g[0]-b)/a)<L]
 		clip = [int(i-self.SNP[n]) if int(i-self.SNP[n])>max((1.5,1.5*np.sqrt(self.SNP[n]))) else 0 for n,i in enumerate(self.exp_smooth(self.spec,alpha=0.35))]
 		gammas = [g+(int((g[2]-b)/a),) for g in gammas if clip[int((g[2]-b)/a)]>0 and abs(g[2]-511.0)>10 and int((g[2]-b)/a)>0]
 		N_c = [int(2.506*self.resolution*g[-1]**0.5*clip[g[-1]])+int(2.0*self.pk_args[0]*self.pk_args[1]*self.resolution*g[-1]**0.5*clip[g[-1]]*np.exp(-0.5/self.pk_args[1]**2)) for g in gammas]
@@ -301,7 +309,7 @@ class spectrum(object):
 		a,b,L,RS = self.calibration[0],self.calibration[1],len(self.spec),self.resolution
 		for itp,A in A0.iteritems():
 			ip = isotope(itp)
-			gammas += [(itp,A,ip.decay_const(),((g[0]-b)/a))+g for g in ip.gammas(Imin=0.11) if ((g[0]-b)/a)<L and abs(g[0]-511.0)>10]
+			gammas += [(itp,A,ip.decay_const(),((g[0]-b)/a))+g for g in ip.gammas(Imin=0.01) if ((g[0]-b)/a)<L and abs(g[0]-511.0)>10]
 		N_c = [g[1]*(self.get_efficiency(g[4])*g[5]) for g in gammas]
 		A = [int(N_c[n]/(2.506*RS*g[3]**0.5+2*self.pk_args[0]*self.pk_args[1]*RS*g[3]**0.5*np.exp(0.5/self.pk_args[1]**2))) for n,g in enumerate(gammas)]
 		gammas = sorted([g+(int(g[3]-6.0*RS*g[3]**0.5),int(g[3]+5.5*RS*g[3]**0.5),A[n]) for n,g in enumerate(gammas) if A[n]>max((1.5,1.5*np.sqrt(self.SNP[int(g[3])])))],key=lambda h:h[4])
@@ -319,7 +327,7 @@ class spectrum(object):
 			for gm in p:
 				p0[-1]['pk_info'].append({'istp':gm[0],'eng':gm[4],'I':gm[5],'unc_I':gm[6],'lm':gm[2]})
 				p0[-1]['p0'] += [gm[9],gm[3],RS*gm[3]**0.5]
-				p0[-1]['bounds'] = (p0[-1]['bounds'][0]+[0,gm[3]-0.25*RS*gm[3]**0.5-2.0,0.75*RS*gm[3]**0.5],p0[-1]['bounds'][1]+[7.5*abs(gm[9])+1,gm[3]+0.25*RS*gm[3]**0.5+2.0,1.5*RS*gm[3]**0.5])
+				p0[-1]['bounds'] = (p0[-1]['bounds'][0]+[0,gm[3]-0.25*RS*gm[3]**0.5-6.0,0.75*RS*gm[3]**0.5],p0[-1]['bounds'][1]+[7.5*abs(gm[9])+1,gm[3]+0.25*RS*gm[3]**0.5+6.0,1.5*RS*gm[3]**0.5])
 		return p0
 	def filter_fits(self,fits,loop=True):
 		good_fits = []
@@ -329,7 +337,7 @@ class spectrum(object):
 			for n,p in enumerate(f['pk_info']):
 				ft,u = f['fit'],f['unc']
 				p['N'] = int(ft[2+3*n]*(2.506*ft[4+3*n]+2*self.pk_args[0]*self.pk_args[1]*ft[4+3*n]*np.exp(-0.5/self.pk_args[1]**2)))
-				p['unc_N'] = int(min((np.sqrt(abs(u[2+3*n][2+3*n])*(p['N']/ft[2+3*n])**2+abs(u[4+3*n][4+3*n])*(p['N']/ft[4+3*n])**2),1e18)))
+				p['unc_N'] = int(min((np.sqrt(abs(u[2+3*n][2+3*n])*(p['N']/ft[2+3*n])**2+abs(u[4+3*n][4+3*n])*(p['N']/ft[4+3*n])**2),1e18))) if not np.isinf(u[2+3*n][2+3*n]) else np.sqrt(p['N'])
 			keep = [n for n in range(N) if f['fit'][2+3*n]>max((2.5,2.5*np.sqrt(self.SNP[int(f['fit'][3+3*n])]))) and (f['pk_info'][n]['unc_N']<25*f['pk_info'][n]['N']) and chi2<500.0]
 			for n in keep:
 				arr = [0,1,2+3*n,3+3*n,4+3*n]
@@ -427,29 +435,36 @@ class calibration(object):
 		self.db_connection = _db_connection
 		self.directory = directory
 		fnms = [str(i[0]) for i in self.db.execute('SELECT * FROM calibration_files WHERE directory=?',(self.directory,))]
-		self.spectra = [spectrum(s) for s in fnms]
+		self.spectra = [spectrum(s,directory) for s in fnms]
 		self.pallate = {'k':'#2c3e50','b':'#2980b9','r':'#c0392b','y':'#f39c12','p':'#8e44ad','g':'#27ae60','gy':'#7f8c8d','o':'#d35400','w':'#ecf0f1','aq':'#16a085'}
 	def objective(self,m,b):
 		L = len(self.log_peaks[0])
 		I = [[int((e-b)/m) for e in eng] for eng in self.calib_peak_eng]
 		return sum([sum([s[i] for i in I[n] if 0<i<L]) for n,s in enumerate(self.log_peaks)])
-	def guess_energy_cal(self):
-		guess = [[float(m) for m in i[1].split(',')] for i in self.db.execute('SELECT * FROM calibration WHERE directory=?',(self.directory,))][0]
-		delta0 = (0.05*guess[0],10.0)
-		gammas = [isotope(s.isotope_list[0]).gammas(Imin=0.3,Emin=70) for s in self.spectra]
+	def guess_energy_cal(self,get_all=False):
+		guess = [[float(i[1].split(',')[0]),float(i[1].split(',')[1])] for i in self.db.execute('SELECT * FROM calibration WHERE directory=?',(self.directory,))][0]
+		gammas = [isotope(s.isotope_list[0]).gammas(Imin=2.5,Emin=70) for s in self.spectra]
 		self.calib_peak_eng = [[g[0] for g in gm] for gm in gammas]
 		self.log_peaks = [[np.log(np.log(np.sqrt(max((i-s.SNP[n],0))+1.0)+1.0)+1.0) for n,i in enumerate(s.spec)] for s in self.spectra]
-		K = 200
-		sm = sum([1.0/float(i)**2 for i in range(1,K+1)])
-		wts = [1.0/(sm*float(i)**2) for i in range(1,K+1)]
-		best_guess = (self.objective(guess[0],guess[1]),guess)
-		for i in range(10):
-			p0 = [(guess[0]+delta0[0]*g*np.exp(-i/4.0),guess[1]+delta0[1]*g*np.exp(-i/4.0)) for g in np.random.normal(0,1,K)]
-			G = sorted([(self.objective(p[0],p[1]),p) for p in p0],key=lambda h:h[0],reverse=True)
-			if G[0][0]>best_guess[0]:
-				best_guess = G[0]
-			guess = (sum([g[1][0]*wts[n] for n,g in enumerate(G)]),sum([g[1][1]*wts[n] for n,g in enumerate(G)]))
-		return best_guess[1]
+		best = self.objective(guess[0],guess[1])
+		for itr in range(3):
+			delta = (0.15*guess[0]/float(itr+1)**2,25.0/float(itr+1)**2)
+			mrange = np.arange(guess[0]-delta[0],guess[0]+delta[0],delta[0]/100.0)
+			brange = np.arange(guess[1]-delta[1],guess[1]+delta[1],delta[1]/100.0)
+			X,Y,Z = [],[],[]
+			for m in mrange:
+				X.append([])
+				Y.append([])
+				Z.append([])
+				for b in brange:
+					X[-1].append(m)
+					Y[-1].append(b)
+					Z[-1].append(self.objective(m,b))
+					if Z[-1][-1]>best:
+						guess,best = [m,b],Z[-1][-1]
+		if get_all:
+			return guess,X,Y,Z
+		return guess
 	def fits(self,usecal=True):
 		guess = self.spectra[0].calibration if usecal else self.guess_energy_cal()
 		self.db.execute('DELETE FROM calibration_peaks WHERE directory=?',(self.directory,))
@@ -558,7 +573,7 @@ class experiment(object):
 		for table in ['experiment_files','calibration_files','irradiation_history','calibration']:
 			self.db.execute('DELETE FROM '+table+' WHERE directory=?',(self.directory,))
 		mass = [i for i in open('../data/spectra/'+self.directory+'/mass.txt').read().split('*') if i!='']
-		expt,cal,hist = [l for l in mass[0].split('\n') if l!=''],[l for l in mass[1].split('\n') if l!=''],[l for l in mass[2].split('\n') if l!='']
+		expt,cal,hist = [l for l in mass[0].split('\n') if l.strip()!='' and not l.startswith('#')],[l for l in mass[1].split('\n') if l.strip()!='' and not l.startswith('#')],[l for l in mass[2].split('\n') if l.strip()!='' and not l.startswith('#')]
 		types = {'f':str,'m':float,'i':str,'E0_D2':float,'R_smpl':float,'R_src':float,'dx':float,'dy':float,'dz':float,'elbow':int,'c':str,'a0':float,'d':str,'start':str,'stop':str}
 		for ln in expt:
 			m = {i.split('=')[0]:types[i.split('=')[0]](i.split('=')[1]) for i in ln.split(',')}
@@ -570,7 +585,7 @@ class experiment(object):
 		eng_cal = [float(f.split(' ')[1]),float(f.split(' ')[0])]
 		resolution = 0.04
 		efficiency = [0.566635,-8.5808,27.56425]
-		pk_args = (0.31,0.91)
+		pk_args = (0.31,1.21)
 		self.db.execute('INSERT INTO calibration VALUES(?,?,?,?,?,?)',(self.directory,','.join([str(i) for i in eng_cal]),','.join([str(i) for i in efficiency]),resolution,pk_args[0],pk_args[1]))
 		for ln in hist:
 			m = {i.split('=')[0]:types[i.split('=')[0]](i.split('=')[1]) for i in ln.split(',')}
@@ -591,16 +606,16 @@ class experiment(object):
 		eob = [[[int(t) for t in m.split(':')] for m in i[2].split('::')] for i in self.db.execute('SELECT * FROM irradiation_history WHERE directory=? ORDER BY stop_time DESC',(self.directory,))][0]
 		eob = dtm.datetime(eob[0][0],eob[0][1],eob[0][2],eob[1][0],eob[1][1],eob[1][2])
 		for fnm in [str(i[0]) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]:
-			sp = spectrum(fnm)
+			sp = spectrum(fnm,self.directory)
 			self.db.execute('DELETE FROM experiment_peaks WHERE filename=?',(fnm,))
 			for pk in sp.fit_peaks():
 				N = (len(pk['p0'])-2)/3
 				for n in range(N):
 					w = 'pk_info'
-					pkinfo = [sp.filename+'.Spe',pk[w][n]['istp'],pk[w][n]['eng'],pk[w][n]['I'],pk[w][n]['unc_I'],pk[w][n]['N'],pk[w][n]['unc_N'],pk[w][n]['chi2'],isotope(pk[w][n]['istp']).decay_const()]
+					pkinfo = [sp.filename+'.Spe',self.directory,pk[w][n]['istp'],pk[w][n]['eng'],pk[w][n]['I'],pk[w][n]['unc_I'],pk[w][n]['N'],pk[w][n]['unc_N'],pk[w][n]['chi2'],isotope(pk[w][n]['istp']).decay_const()]
 					pkinfo += [sp.get_efficiency(pk[w][n]['eng']),sp.live_time,(sp.start_time-eob).total_seconds()]
 					if pk[w][n]['unc_N']/pk[w][n]['N']<0.02:
-						self.db.execute('INSERT INTO experiment_peaks VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',tuple(pkinfo))
+						self.db.execute('INSERT INTO experiment_peaks VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',tuple(pkinfo))
 			sp.plot_fits(wfit=True,logscale=True,save=True,zoom=True)
 			self.db_connection.commit()
 	def update_calibration(self):
@@ -613,11 +628,13 @@ class experiment(object):
 	def parse_calibration_peaks(self,i):
 		return {'fnm':str(i[0]),'istp':str(i[2]),'N':int(i[3]),'unc_N':int(i[4]),'chi2':float(i[5]),'eng':float(i[6]),'I':float(i[7]),'unc_I':float(i[7])}
 	def parse_experiment_peaks(self,i):
-		return {'fnm':str(i[0]),'istp':str(i[1]),'eng':float(i[2]),'I':float(i[3]),'unc_I':float(i[4]),'N':float(i[5]),'unc_N':float(i[6]),'chi2':float(i[7]),'lm':float(i[8]),'eff':float(i[9]),'t_m':float(i[10]),'t_c':float(i[11])}
+		return {'fnm':str(i[0]),'dir':str(i[1]),'istp':str(i[2]),'eng':float(i[3]),'I':float(i[4]),'unc_I':float(i[5]),'N':float(i[6]),'unc_N':float(i[7]),'chi2':float(i[8]),'lm':float(i[9]),'eff':float(i[10]),'t_m':float(i[11]),'t_c':float(i[12])}
 	def get_A0(self,fnm,istp,saveplot=True,show=False):
 		ip = isotope(istp)
 		lm = ip.decay_const()
-		pks = [self.parse_experiment_peaks(i) for i in self.db.execute('SELECT * FROM experiment_peaks WHERE filename=? AND isotope=?',(fnm,istp))]
+		pks = [self.parse_experiment_peaks(i) for i in self.db.execute('SELECT * FROM experiment_peaks WHERE filename=? AND directory=? AND isotope=?',(fnm,self.directory,istp))]
+		if len(pks)==0:
+			return None,None
 		A = [p['N']*lm/((1.0-np.exp(-lm*p['t_m']))*p['eff']*0.01*p['I']) for p in pks]
 		T_c = [p['t_c'] for t in pks]
 		sigA = [np.sqrt(p['unc_N']**2*(A[n]/p['N'])**2+p['unc_I']**2*(A[n]/p['I'])**2) for n,p in enumerate(pks)]
@@ -655,6 +672,8 @@ class experiment(object):
 			self.flux_detailed[fl['f']] = {}
 			for istp in fl['i']:
 				A0,sig_A0 = self.get_A0(fl['f'],istp)
+				if A0 is None:
+					continue
 				flx.set_sample_params(E0_D2=fl['E0_D2'],R_smpl=fl['R_smpl'],R_src=fl['R_src'],dx=fl['dx'],dy=fl['dy'],dz=fl['dz'],elbow=fl['elbow'])
 				flx.plot_energy_spectrum(saveplot=True,show=False)
 				flx.plot_intensity_angle(saveplot=True,show=False)
@@ -750,7 +769,10 @@ class experiment(object):
 		chnl = {'115INm':r'$^{115}$In(n,n'+"'"+r')$^{115m}$In','113INm':r'$^{113}$In(n,n'+"'"+r')$^{113m}$In','116INm':r'$^{115}$In(n,$\gamma$)$^{116m}$In','58CO':r'$^{58}$Ni(n,p)$^{58}$Co'}
 		for smpl,fnm in enumerate([str(i[0]) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
 			for istp in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=? AND filename=?',(self.directory,fnm))][0]:
-				ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],3))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+self.flux_TeX(self.flux_detailed[fnm][istp]['phi'],self.flux_detailed[fnm][istp]['unc_phi'])+r' \\'+'\n'
+				try:
+					ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],3))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+self.flux_TeX(self.flux_detailed[fnm][istp]['phi'],self.flux_detailed[fnm][istp]['unc_phi'])+r' \\'+'\n'
+				except:
+					pass
 		self.save_tex(ss,'flux_detailed')
 	def generate_flux_plots(self):
 		ss = ''
@@ -778,14 +800,19 @@ class experiment(object):
 		stop = [dtm.datetime(t[0][0],t[0][1],t[0][2],t[1][0],t[1][1],t[1][2]) for t in stop]
 		N = len(start)
 		for n in range(N):
-			ss += str(start[n].strftime("%H:%M %m/%d/%Y"))+' & '+str(stop[n].strftime("%H:%M %m/%d/%Y"))+' & '+str(round((stop[n]-start[n]).total_seconds()/3600.0,1))+r' \\'+'\n'
+			ss += str(start[n].strftime("%H:%M %m/%d/%Y"))+' & '+str(stop[n].strftime("%H:%M %m/%d/%Y"))+' & '+str(round((stop[n]-start[n]).total_seconds()/3600.0,2))+r' \\'+'\n'
+		if N>1:
+			ss +=  r'\hline'+'\nCumulative Time [h] & & '+str(round(sum([(stop[n]-start[n]).total_seconds()/3600.0 for n in range(N)]),2))+r' \\'+'\n'
 		self.save_tex(ss,'irradiation_history')
 	def generate_monitor_table(self):
 		ss = ''
 		chnl = {'115INm':r'$^{115}$In(n,n'+"'"+r')$^{115m}$In','113INm':r'$^{113}$In(n,n'+"'"+r')$^{113m}$In','116INm':r'$^{115}$In(n,$\gamma$)$^{116m}$In','58CO':r'$^{58}$Ni(n,p)$^{58}$Co'}
 		for smpl,fnm in enumerate([str(i[0]) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]):
 			for istp in [str(i[3]).split(';') for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=? AND filename=?',(self.directory,fnm))][0]:
-				ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],3))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+str(round(self.flux_detailed[fnm][istp]['sig'],1))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['unc_sig'],1))+r' \\'+'\n'
+				try:
+					ss += str(smpl+1)+' & '+chnl[istp]+' & '+str(round(self.flux_detailed[fnm][istp]['E'],3))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['dE'],3))+' & '+str(round(self.flux_detailed[fnm][istp]['sig'],1))+r' $\pm$ '+str(round(self.flux_detailed[fnm][istp]['unc_sig'],1))+r' \\'+'\n'
+				except:
+					pass
 		self.save_tex(ss,'monitor_table')
 	def generate_monitor_xs(self):
 		ss = ''
@@ -818,7 +845,7 @@ class experiment(object):
 		for pk in [self.parse_calibration_peaks(i) for i in self.db.execute('SELECT * FROM calibration_peaks WHERE directory=?',(self.directory,))]:
 			ss += ' & '.join([r'\texttt{\detokenize{'+pk['fnm']+'}}',isotope(pk['istp']).TeX(),str(pk['eng']),str(pk['I'])+r'$\pm$'+str(pk['unc_I']),str(pk['N'])+r'$\pm$'+str(pk['unc_N']),str(round(pk['chi2'],1))])+r' \\'+'\n'
 		for fl in [self.parse_experiment_file(i) for i in self.db.execute('SELECT * FROM experiment_files WHERE directory=?',(self.directory,))]:
-			for pk in [self.parse_experiment_peaks(i) for i in self.db.execute('SELECT * FROM experiment_peaks WHERE filename=?',(fl['f'],))]:
+			for pk in [self.parse_experiment_peaks(i) for i in self.db.execute('SELECT * FROM experiment_peaks WHERE filename=? AND directory=?',(fl['f'],self.directory))]:
 				ss += ' & '.join([r'\texttt{\detokenize{'+pk['fnm']+'}}',isotope(pk['istp']).TeX(),str(pk['eng']),str(pk['I'])+r'$\pm$'+str(pk['unc_I']),str(int(pk['N']))+r'$\pm$'+str(int(pk['unc_N'])),str(round(pk['chi2'],1))])+r' \\'+'\n'
 		self.save_tex(ss,'peak_table')
 	def generate_sample_mass(self):
@@ -876,13 +903,24 @@ class experiment(object):
 # sp.plot_fits(wfit=True)
 
 # expt = experiment('112017_Cantarini_indium')
+# expt = experiment('111617_Cantarini_indium')
 # expt = experiment('031218_Daniel_Ni')
-# expt = experiment('031218_Daniel_offset')
-expt = experiment('102317_Batch_Ni')
+# expt = experiment('033018_Daniel_Ni')
+# expt = experiment('033018_Daniel_Ni_center_foil')
+# expt = experiment('041018_Nnaemeka_Ni_with_poly')
+# expt = experiment('041018_Nnaemeka_Ni_without_poly')
+# expt = experiment('041018_Nnaemeka_In_with_poly')
+# expt = experiment('041018_Nnaemeka_In_without_poly')
+# expt = experiment('102317_Batch_Ni')
+# expt = experiment('Batch_later_Ni')
+# expt = experiment('042418_Josh_Grace_Indium')
+# expt = experiment('Mauricio_9Foil')
+# expt = experiment('032218_James')
+# expt = experiment('062018_Cantarini_Indium4')
+expt = experiment('070318_Indium_Test')
 # expt.update_files()
 # expt.create_plots_dir()
 # expt.update_calibration()
 # expt.fit_experiment_peaks()
 # expt.calculate_flux()
 expt.generate_report()
-

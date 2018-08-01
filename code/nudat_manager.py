@@ -67,7 +67,7 @@ class exfor_xs(object):
 		ax.set_xlabel('Neutron Energy [MeV]')
 		ax.set_ylabel('Cross Section [mb]')
 		rx = reaction.split('_')
-		ax.set_title(self.TeX(rx[0])+'('+rx[1]+','+rx[2].replace("inl","n'")+')'+self.TeX(rx[3]))
+		ax.set_title(self.TeX(rx[0])+'('+rx[1]+','+rx[2].replace("inl","n'").replace('g',r'$\gamma$')+')'+self.TeX(rx[3]))
 		ax.legend(loc=0)
 		f.tight_layout()
 		if save:

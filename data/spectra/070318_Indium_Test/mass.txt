@@ -1,0 +1,14 @@
+f=indium1.Spe,m=0.1101,i=115INm;116INm;113INm,E0_D2=102.6,dx=0.0,dy=0.0,dz=8.5,R_src=11.0,R_smpl=3.175,elbow=0
+f=indium2.Spe,m=0.0726,i=115INm;116INm;113INm,E0_D2=102.6,dx=0.0,dy=7.14,dz=8.5,R_src=11.0,R_smpl=3.175,elbow=0
+f=indium3.Spe,m=0.1401,i=115INm;116INm;113INm,E0_D2=102.6,dx=8.73,dy=0.0,dz=8.5,R_src=11.0,R_smpl=4.7625,elbow=0
+f=indium4.Spe,m=0.1400,i=115INm;116INm;113INm,E0_D2=102.6,dx=-11.125,dy=0.0,dz=8.5,R_src=11.0,R_smpl=4.7625,elbow=0
+f=indium5.Spe,m=0.1087,i=115INm;116INm;113INm,E0_D2=102.6,dx=13.21,dy=8.53,dz=8.5,R_src=11.0,R_smpl=4.7625,elbow=0
+f=indium6.Spe,m=0.1560,i=115INm;116INm;113INm,E0_D2=102.6,dx=38.48,dy=11.07,dz=8.5,R_src=11.0,R_smpl=4.7625,elbow=0
+f=indium7.Spe,m=0.2293,i=115INm;116INm;113INm,E0_D2=102.6,dx=46.04,dy=0.0,dz=-0.3048,R_src=11.0,R_smpl=4.7625,elbow=1
+f=indium8.Spe,m=0.1209,i=115INm;116INm;113INm,E0_D2=102.6,dx=-24.61,dy=0.0,dz=-13.6525,R_src=11.0,R_smpl=4.7625,elbow=0
+####f=indium9.Spe,m=0.1224,i=115INm;116INm;113INm,E0_D2=102.6,dx=-50.8,dy=-13.48,dz=-13.6525,R_src=11.0,R_smpl=3.35,elbow=0
+f=indium10_2.Spe,m=0.1541,i=115INm;116INm;113INm,E0_D2=102.6,dx=-64.29,dy=0.0,dz=-13.6525,R_src=11.0,R_smpl=4.7625,elbow=0
+*************
+c=eu_calib.Spe,i=152EU,a0=39.368E3,d=2009:01:15::12:00:00
+*************
+start=2018:07:03::14:45:00,stop=2018:07:03::15:45:00

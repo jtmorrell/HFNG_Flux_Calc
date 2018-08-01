@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2018.2.27)  21 MAR 2018 15:47
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2018.2.27)  1 APR 2018 11:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -542,7 +542,7 @@ energy_calibration.pdf): PDF inclusion: multiple pdfs with page group included
 in a single page
 >]
 <../../plots/112017_Cantarini_indium/calibration/efficiency_calibration.pdf, id
-=271, 462.52798pt x 346.89601pt>
+=270, 462.52798pt x 346.89601pt>
 File: ../../plots/112017_Cantarini_indium/calibration/efficiency_calibration.pd
 f Graphic file (type pdf)
 
@@ -558,7 +558,7 @@ Overfull \hbox (10.0748pt too wide) in paragraph at lines 185--186
 
 
 <../../plots/112017_Cantarini_indium/calibration/resolution_calibration.pdf, id
-=274, 462.52798pt x 346.89601pt>
+=273, 462.52798pt x 346.89601pt>
 File: ../../plots/112017_Cantarini_indium/calibration/resolution_calibration.pd
 f Graphic file (type pdf)
 
@@ -995,7 +995,7 @@ pdfTeX warning: pdflatex (file ../../plots/112017_Cantarini_indium/decay_curves
 /112017_115IN_Foil3_113INm.pdf): PDF inclusion: multiple pdfs with page group i
 ncluded in a single page
 >] (./peak_fit_plots.tex
-<../../plots/112017_Cantarini_indium/peak_fits/111617_152EU.pdf, id=1332, 925.0
+<../../plots/112017_Cantarini_indium/peak_fits/111617_152EU.pdf, id=1333, 925.0
 5597pt x 346.89601pt>
 File: ../../plots/112017_Cantarini_indium/peak_fits/111617_152EU.pdf Graphic fi
 le (type pdf)
@@ -1005,7 +1005,7 @@ Package pdftex.def Info: ../../plots/112017_Cantarini_indium/peak_fits/111617_1
 52EU.pdf used on input line 2.
 (pdftex.def)             Requested size: 510.0pt x 191.25389pt.
 
-<../../plots/112017_Cantarini_indium/peak_fits/112017_115IN_Foil1.pdf, id=1333,
+<../../plots/112017_Cantarini_indium/peak_fits/112017_115IN_Foil1.pdf, id=1334,
  925.05597pt x 346.89601pt>
 File: ../../plots/112017_Cantarini_indium/peak_fits/112017_115IN_Foil1.pdf Grap
 hic file (type pdf)
@@ -1015,7 +1015,7 @@ Package pdftex.def Info: ../../plots/112017_Cantarini_indium/peak_fits/112017_1
 15IN_Foil1.pdf used on input line 8.
 (pdftex.def)             Requested size: 510.0pt x 191.25389pt.
 
-<../../plots/112017_Cantarini_indium/peak_fits/112017_115IN_Foil2.pdf, id=1334,
+<../../plots/112017_Cantarini_indium/peak_fits/112017_115IN_Foil2.pdf, id=1335,
  925.05597pt x 346.89601pt>
 File: ../../plots/112017_Cantarini_indium/peak_fits/112017_115IN_Foil2.pdf Grap
 hic file (type pdf)
@@ -1025,7 +1025,7 @@ Package pdftex.def Info: ../../plots/112017_Cantarini_indium/peak_fits/112017_1
 15IN_Foil2.pdf used on input line 14.
 (pdftex.def)             Requested size: 510.0pt x 191.25389pt.
 
-<../../plots/112017_Cantarini_indium/peak_fits/112017_115IN_Foil3.pdf, id=1335,
+<../../plots/112017_Cantarini_indium/peak_fits/112017_115IN_Foil3.pdf, id=1336,
  925.05597pt x 346.89601pt>
 File: ../../plots/112017_Cantarini_indium/peak_fits/112017_115IN_Foil3.pdf Grap
 hic file (type pdf)
@@ -1065,7 +1065,7 @@ changed.
 Here is how much of TeX's memory you used:
  8458 strings out of 494953
  125551 string characters out of 6180977
- 333428 words of memory out of 5000000
+ 334428 words of memory out of 5000000
  11482 multiletter control sequences out of 15000+600000
  16796 words of font info for 63 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
@@ -1091,9 +1091,9 @@ lic/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/ams
 fonts/cm/cmti9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/c
 m/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt
 9.pfb>
-Output written on 112017_Cantarini_indium_report.pdf (14 pages, 873706 bytes).
+Output written on 112017_Cantarini_indium_report.pdf (14 pages, 875791 bytes).
 PDF statistics:
- 1599 PDF objects out of 1728 (max. 8388607)
+ 1600 PDF objects out of 1728 (max. 8388607)
  476 compressed objects within 5 object streams
  75 named destinations out of 1000 (max. 500000)
  250 words of extra memory for PDF output out of 10000 (max. 10000000)
